@@ -2,11 +2,553 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>Cloudflare Proxy Lab - Console</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloudflare Proxy Lab · 实验控制台</title>
+  <style>
+    :root {
+      --bg-base: #0b0f19;
+      --bg-surface: #111827;
+      --bg-card: #1f2937;
+      --bg-card-hover: #283548;
+      --border-color: #374151;
+      --border-focus: #3b82f6;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+    }
+
+    .brand-badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 9999px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    .brand-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Target Bar */
+    .target-bar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .target-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .input-group {
+      display: flex;
+      flex: 1;
+      min-width: 280px;
+      gap: 8px;
+    }
+
+    input, select, textarea {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--border-focus);
+    }
+
+    input.flex-1 {
+      flex: 1;
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease, opacity 0.15s ease;
+      white-space: nowrap;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button.btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    button.btn-secondary:hover:not(:disabled) {
+      background: var(--bg-card-hover);
+      border-color: #4b5563;
+    }
+
+    button.btn-success {
+      background: #059669;
+    }
+    button.btn-success:hover:not(:disabled) {
+      background: #047857;
+    }
+
+    button.btn-danger {
+      background: #dc2626;
+    }
+    button.btn-danger:hover:not(:disabled) {
+      background: #b91c1c;
+    }
+
+    /* Grid Layout */
+    .grid-layout {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-family: var(--font-mono);
+      background: rgba(107, 114, 128, 0.2);
+      color: var(--text-muted);
+      border: 1px solid rgba(107, 114, 128, 0.3);
+    }
+
+    .status-badge.online {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .status-badge.connecting {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .status-badge.error {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .card-content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .response-box {
+      background: var(--bg-base);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      color: #e5e7eb;
+      min-height: 80px;
+      max-height: 180px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .field-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .field-inline {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 8px;
+    }
+
+    /* Terminal Logs */
+    .terminal-card {
+      grid-column: 1 / -1;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #21262d;
+      padding-bottom: 10px;
+    }
+
+    .terminal-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      color: #8b949e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .terminal-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .terminal-body {
+      background: #090d13;
+      border: 1px solid #21262d;
+      border-radius: 6px;
+      padding: 12px;
+      height: 240px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-line {
+      display: flex;
+      gap: 8px;
+      line-height: 1.4;
+    }
+
+    .log-time {
+      color: #6e7681;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .log-tag {
+      font-weight: 700;
+      font-size: 0.6875rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      height: fit-content;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .log-tag.INFO { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .log-tag.SUCCESS { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .log-tag.WARN { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .log-tag.ERROR { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .log-tag.WS-TX { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+    .log-tag.WS-RX { background: rgba(6, 182, 212, 0.2); color: #22d3ee; }
+
+    .log-msg {
+      color: #c9d1d9;
+      word-break: break-all;
+    }
+
+    .hint-text {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+  </style>
 </head>
 <body>
-  <h1>Cloudflare Proxy Lab 实验控制台</h1>
-  <div id="app"></div>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div>
+        <div class="brand-title">
+          <span>⚡ Cloudflare Proxy Lab</span>
+          <span class="brand-badge">Pages 实验控制台</span>
+        </div>
+        <p class="brand-desc">Cloudflare Workers 与 Pages 双向长连接、VLESS 解析与网络出站诊断平台 (Phase 1)</p>
+      </div>
+      <div>
+        <span class="brand-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">
+          独立解耦架构 (Decoupled Client)
+        </span>
+      </div>
+    </header>
+
+    <!-- Target Configuration Bar -->
+    <div class="target-bar">
+      <span class="target-label">🎯 Worker 目标地址:</span>
+      <div class="input-group">
+        <input id="workerUrlInput" type="text" class="flex-1" value="http://localhost:8787" placeholder="http://localhost:8787 或 https://xxxx.workers.dev">
+        <button id="btnSetLocalhost" class="btn-secondary" type="button">Localhost:8787</button>
+        <button id="btnPingWorker" type="button">⚡ Ping 探测</button>
+      </div>
+      <span id="pingBadge" class="status-badge">
+        <span class="status-indicator"></span>
+        <span id="pingText">待探测</span>
+      </span>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid-layout">
+      <!-- Card 1: HTTP Diagnostic Prober -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🌐</span>
+            <span>HTTP 诊断端点</span>
+          </div>
+          <span class="brand-badge">Step 2</span>
+        </div>
+        <div class="card-content">
+          <div class="button-row">
+            <button id="btnTestRoot" class="btn-secondary" type="button">GET / (根状态)</button>
+            <button id="btnTestHealth" class="btn-secondary" type="button">GET /health (心跳)</button>
+            <button id="btnTestInfo" class="btn-secondary" type="button">GET /info (环境脱敏)</button>
+          </div>
+          <div class="field-row">
+            <span class="field-label">响应数据 (JSON / Status)</span>
+            <div id="httpResponseBox" class="response-box">点击上方按钮发起 HTTP 诊断请求...</div>
+          </div>
+          <div class="hint-text">
+            💡 验证 Worker 的 HTTP 处理管道，并确保敏感凭证（如 VLESS_UUID）在 /info 中完全脱敏不泄露。
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: WebSocket Echo Tester -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🔄</span>
+            <span>WebSocket Echo 测试仪</span>
+          </div>
+          <span id="wsStatusBadge" class="status-badge">
+            <span class="status-indicator"></span>
+            <span id="wsStatusText">未连接</span>
+          </span>
+        </div>
+        <div class="card-content">
+          <div class="field-row">
+            <span class="field-label">端点: /ws</span>
+            <div class="button-row">
+              <button id="btnWsConnect" type="button">连接 /ws</button>
+              <button id="btnWsDisconnect" class="btn-danger" type="button" disabled>断开连接</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="field-label">文本 Echo 测试</span>
+            <div class="input-group">
+              <input id="wsTextInput" type="text" class="flex-1" value="Hello Cloudflare Worker WebSocket!" placeholder="输入测试消息...">
+              <button id="btnWsSendText" class="btn-secondary" type="button" disabled>发送文本</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="field-label">二进制 Echo 测试</span>
+            <button id="btnWsSendBinary" class="btn-secondary" type="button" disabled>发送 16 字节随机二进制 (RTT 测量)</button>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Echo 往返监视</span>
+            <div id="wsEchoBox" class="response-box">等待 WebSocket 连接建立...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: VLESS Handshake Protocol Tester -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🛡️</span>
+            <span>VLESS 协议握手测试仪</span>
+          </div>
+          <span class="brand-badge">Step 5~10</span>
+        </div>
+        <div class="card-content">
+          <div class="field-row">
+            <span class="field-label">鉴权 UUID (16 字节十六进制)</span>
+            <div class="input-group">
+              <input id="vlessUuidInput" type="text" class="flex-1" value="d34db33f-9999-4444-8888-123456789abc">
+              <button id="btnPresetValidUuid" class="btn-secondary" type="button">合法 UUID</button>
+              <button id="btnPresetInvalidUuid" class="btn-secondary" type="button">非法 UUID (阻断测试)</button>
+            </div>
+          </div>
+
+          <div class="field-inline">
+            <div class="field-row">
+              <span class="field-label">目标主机 (Address)</span>
+              <input id="vlessAddressInput" type="text" value="www.google.com" placeholder="域名或 IPv4">
+            </div>
+            <div class="field-row">
+              <span class="field-label">端口 (Port)</span>
+              <input id="vlessPortInput" type="number" value="80" min="1" max="65535">
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button id="btnQuickPort80" class="btn-secondary" type="button">端口 80 (HTTP)</button>
+            <button id="btnQuickPort443" class="btn-secondary" type="button">端口 443 (HTTPS)</button>
+            <button id="btnQuickPort25" class="btn-secondary" type="button">端口 25 (SMTP 阻断测试)</button>
+          </div>
+
+          <div class="field-row">
+            <button id="btnSendVlessHandshake" class="btn-success" type="button">🚀 发送 VLESS 握手包并验证响应</button>
+          </div>
+
+          <div class="field-row">
+            <span class="field-label">握手结果与二进制报文诊断</span>
+            <div id="vlessResultBox" class="response-box">准备就绪，配置参数后点击上方按钮测试 VLESS 握手流程...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Terminal Event Log Console -->
+      <div class="terminal-card">
+        <div class="terminal-header">
+          <div class="terminal-title">
+            <span>💻 实时诊断交互控制台 (Live Event Logs)</span>
+          </div>
+          <div class="terminal-actions">
+            <button id="btnClearLogs" class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" type="button">清空日志</button>
+            <button id="btnCopyLogs" class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" type="button">复制日志</button>
+          </div>
+        </div>
+        <div id="terminalBody" class="terminal-body">
+          <!-- Dynamically inserted log lines -->
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="./app.ts" type="module"></script>
 </body>
 </html>

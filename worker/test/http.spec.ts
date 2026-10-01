@@ -109,6 +109,24 @@ describe("HTTP Diagnostic Routes (Step 2)", () => {
     });
   });
 
+  describe("CORS Support for Diagnostic Console", () => {
+    it("should respond to OPTIONS preflight with 204 and CORS headers", async () => {
+      const request = new Request("http://localhost/health", { method: "OPTIONS" });
+      const response = await handleHttp(request, {});
+
+      expect(response.status).toBe(204);
+      expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");
+      expect(response.headers.get("Access-Control-Allow-Methods")).toContain("GET");
+    });
+
+    it("should include Access-Control-Allow-Origin header on GET responses", async () => {
+      const request = new Request("http://localhost/health");
+      const response = await handleHttp(request, {});
+
+      expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");
+    });
+  });
+
   describe("Unknown routes (404)", () => {
     it("should return 404 on non-existent path", async () => {
       const request = new Request("http://localhost/random-non-existent-path");

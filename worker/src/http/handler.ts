@@ -7,11 +7,27 @@ import { getConfig } from "../config/config";
 export async function handleHttp(request: Request, env: unknown): Promise<Response> {
   const url = new URL(request.url);
 
+  // Handle CORS preflight options
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "*",
+      },
+    });
+  }
+
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+  };
+
   if (url.pathname === "/") {
     if (request.method !== "GET") {
       return new Response("Method Not Allowed", {
         status: 405,
-        headers: { Allow: "GET" },
+        headers: { Allow: "GET", ...corsHeaders },
       });
     }
 
@@ -23,7 +39,10 @@ export async function handleHttp(request: Request, env: unknown): Promise<Respon
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json; charset=utf-8" },
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          ...corsHeaders,
+        },
       }
     );
   }
@@ -32,7 +51,7 @@ export async function handleHttp(request: Request, env: unknown): Promise<Respon
     if (request.method !== "GET") {
       return new Response("Method Not Allowed", {
         status: 405,
-        headers: { Allow: "GET" },
+        headers: { Allow: "GET", ...corsHeaders },
       });
     }
 
@@ -42,7 +61,10 @@ export async function handleHttp(request: Request, env: unknown): Promise<Respon
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json; charset=utf-8" },
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          ...corsHeaders,
+        },
       }
     );
   }
@@ -51,7 +73,7 @@ export async function handleHttp(request: Request, env: unknown): Promise<Respon
     if (request.method !== "GET") {
       return new Response("Method Not Allowed", {
         status: 405,
-        headers: { Allow: "GET" },
+        headers: { Allow: "GET", ...corsHeaders },
       });
     }
 
@@ -67,10 +89,16 @@ export async function handleHttp(request: Request, env: unknown): Promise<Respon
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json; charset=utf-8" },
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          ...corsHeaders,
+        },
       }
     );
   }
 
-  return new Response("Not Found", { status: 404 });
+  return new Response("Not Found", {
+    status: 404,
+    headers: corsHeaders,
+  });
 }

@@ -9,8 +9,10 @@
   ],
   "scripts": {
     "dev": "npm --workspace=worker run dev",
+    "pages:dev": "npm --workspace=pages run dev",
+    "pages:build": "npm --workspace=pages run build",
     "deploy": "npm --workspace=worker run deploy",
     "test": "npm --workspace=worker run test",
-    "typecheck": "npm --workspace=worker run typecheck"
+    "typecheck": "npm --workspace=worker run typecheck && npm --workspace=pages run typecheck"
   }
 }

@@ -4,6 +4,8 @@
   "private": true,
   "description": "Cloudflare Pages test console",
   "scripts": {
-    "build": "echo 'Pages build ready'"
+    "dev": "vite src",
+    "build": "vite build src --outDir ../dist --emptyOutDir",
+    "typecheck": "tsc --noEmit"
   }
 }
