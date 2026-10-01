@@ -83,6 +83,7 @@ describe("VLESS UUID Authentication & Short-Circuit Defense (Step 7)", () => {
         format: "esm",
         write: false,
         sourcemap: "inline",
+        external: ["cloudflare:*"],
       });
 
       const code = buildResult.outputFiles[0].text;

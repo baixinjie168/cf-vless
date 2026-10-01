@@ -13,6 +13,7 @@ describe("WebSocket Full-Duplex Echo & Lifecycle (Step 3 & 4)", () => {
       format: "esm",
       write: false,
       sourcemap: "inline",
+      external: ["cloudflare:*"],
     });
 
     const code = buildResult.outputFiles[0].text;
