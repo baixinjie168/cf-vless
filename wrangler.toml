@@ -1,0 +1,8 @@
+name = "open-window"
+main = "worker/src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "production"
+VLESS_UUID = "d34db33f-9999-4444-8888-123456789abc"
