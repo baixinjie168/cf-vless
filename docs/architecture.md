@@ -20,3 +20,11 @@
 - **恒定时间校验 (`timingSafeEqual`)**：消除逐位对比的时间侧信道攻击风险。
 - **Fail-Closed 默认拒绝**：未配置 Secret 或客户端凭证空缺时统一判负。
 - **短路阻断 (`1008 Policy Violation`)**：鉴权失败立即关闭 WebSocket 并阻断后续任意出站转发，彻底保护 Worker 边缘资源。
+
+## 全双工流管道转发规范 (Step 10)
+- **首包载荷注入**：剥离并验证 VLESS Header 后，将其携带的首包 Payload（如 TLS ClientHello）优先写入出站 Socket。
+- **协议响应握手**：向客户端回传 `[0x00, 0x00]` VLESS 响应头确认握手就绪。
+- **双向对敲流传输**：
+  - 上行方向：客户端 WebSocket 消息帧 $\to$ 出站 TCP WritableStream
+  - 下行方向：出站 TCP ReadableStream $\to$ 客户端 WebSocket 二进制帧
+- **互斥级联销毁**：任意单侧断开（TCP FIN 或 WebSocket Close）或抛出异常时，均显式触发对侧资源彻底释放，杜绝悬挂连接。
