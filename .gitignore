@@ -1,0 +1,12 @@
+# Development drafts and design blueprints
+dev/
+
+# Dependencies
+node_modules/
+
+# Cloudflare Wrangler & build artifacts
+.wrangler/
+dist/
+
+# System files
+.DS_Store
