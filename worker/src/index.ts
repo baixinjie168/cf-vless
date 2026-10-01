@@ -1,3 +1,6 @@
+import { handleHttp } from "./http/handler";
+import { handleWebSocket } from "./websocket/handler";
+
 export interface Env {
   VLESS_UUID?: string;
   ENVIRONMENT?: string;
@@ -5,18 +8,11 @@ export interface Env {
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    return new Response(
-      JSON.stringify({
-        name: "cloudflare-proxy-lab",
-        status: "ok",
-        version: "0.1.0",
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-        },
-      }
-    );
+    const upgradeHeader = request.headers.get("Upgrade");
+    if (upgradeHeader === "websocket") {
+      return handleWebSocket(request);
+    }
+
+    return handleHttp(request, env);
   },
 };
