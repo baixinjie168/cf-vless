@@ -78,3 +78,17 @@ VLESS 是一种无状态的轻量级代理协议，客户端在 WebSocket 建立
 - **工具纯函数测试**：
   - `formatUuid` 16 字节转标准 36 字符规范 UUID。
   - `formatIpv6` 16 字节转 8 组十六进制格式。
+
+---
+
+## 5. UUID 鉴权与短路防御机制 (Step 7)
+
+### 恒定时间防御 (`timingSafeEqual`)
+由于标准字符串严格比较（`===`）在发现首个不匹配字符时会提前跳出循环，可能遭受侧信道时间差分析（Timing Attack）。
+在 [`worker/src/vless/auth.ts`](file:///Users/Apple/Projects/tools/cf-vless/worker/src/vless/auth.ts) 中实现了无分支位异或运算的恒定时间比较算法，彻底抹除时间侧信道指纹。
+
+### 鉴权拦截与生命周期
+1. **未授权请求立即阻断**：当客户端首包解析出的 UUID 与环境变量 `VLESS_UUID` 不匹配时，服务端立即通过 `server.close(1008, "Policy Violation: Invalid User UUID")` 关闭连接。
+2. **零网络副作用保证**：鉴权失败的连接在首包解析阶段直接被切断，严禁触发后续出站 TCP 发起与任何平台资源消耗。
+3. **协议就绪确认**：鉴权通过后，服务端下发标准的 VLESS 响应首部 `new Uint8Array([0, 0])`，标志着代理链路已就绪。
+

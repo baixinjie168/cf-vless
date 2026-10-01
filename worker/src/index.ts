@@ -11,8 +11,12 @@ export default {
     const url = new URL(request.url);
     const upgradeHeader = request.headers.get("Upgrade");
 
-    if (url.pathname === "/ws" || upgradeHeader === "websocket") {
-      return handleWebSocket(request);
+    if (
+      url.pathname === "/ws" ||
+      url.pathname === "/vless" ||
+      upgradeHeader === "websocket"
+    ) {
+      return handleWebSocket(request, env);
     }
 
     return handleHttp(request, env);
