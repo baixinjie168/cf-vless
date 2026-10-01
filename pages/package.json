@@ -1,0 +1,9 @@
+{
+  "name": "pages",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Pages test console",
+  "scripts": {
+    "build": "echo 'Pages build ready'"
+  }
+}

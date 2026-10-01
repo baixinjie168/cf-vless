@@ -1,0 +1,16 @@
+{
+  "name": "cloudflare-proxy-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Worker & Pages Proxy Lab",
+  "workspaces": [
+    "worker",
+    "pages"
+  ],
+  "scripts": {
+    "dev": "npm --workspace=worker run dev",
+    "deploy": "npm --workspace=worker run deploy",
+    "test": "npm --workspace=worker run test",
+    "typecheck": "npm --workspace=worker run typecheck"
+  }
+}
