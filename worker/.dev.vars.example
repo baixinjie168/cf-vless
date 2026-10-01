@@ -1,0 +1,4 @@
+# Cloudflare Worker Local Development Secrets Example
+# Copy this file to .dev.vars for local testing:
+# cp worker/.dev.vars.example worker/.dev.vars
+VLESS_UUID="d34db33f-9999-4444-8888-123456789abc"

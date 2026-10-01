@@ -5,3 +5,4 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 ENVIRONMENT = "development"
+VLESS_UUID = "d34db33f-9999-4444-8888-123456789abc"

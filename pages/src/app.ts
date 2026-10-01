@@ -300,6 +300,19 @@ document.getElementById("btnPresetInvalidUuid")?.addEventListener("click", () =>
   addLog("WARN", "已填入非法测试 UUID (预期将被 Worker 1008 阻断): 00000000-0000-0000-0000-000000000000");
 });
 
+document.getElementById("btnQuickHostGoogle")?.addEventListener("click", () => {
+  vlessAddressInput.value = "www.google.com";
+});
+
+document.getElementById("btnQuickHostBaidu")?.addEventListener("click", () => {
+  vlessAddressInput.value = "www.baidu.com";
+  addLog("INFO", "已切换目标为: www.baidu.com (适合国内网络直连测试)");
+});
+
+document.getElementById("btnQuickHostCf")?.addEventListener("click", () => {
+  vlessAddressInput.value = "1.1.1.1";
+});
+
 document.getElementById("btnQuickPort80")?.addEventListener("click", () => {
   vlessPortInput.value = "80";
 });
