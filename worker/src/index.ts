@@ -4,6 +4,7 @@ import { handleWebSocket } from "./websocket/handler";
 export interface Env {
   VLESS_UUID?: string;
   ENVIRONMENT?: string;
+  PROXYIP?: string;
 }
 
 export default {

@@ -321,11 +321,12 @@ export function renderDashboardHtml(
     <div class="card">
       <div class="card-title">
         <span>💡</span>
-        <span>进阶玩法：优选 IP / Clean IP 优化指引</span>
+        <span>进阶玩法：优选 IP / Clean IP 矩阵与测速技巧</span>
       </div>
       <div class="tips-box">
-        1. <strong>国内直连优化</strong>：在客户端（如 Clash Verge 或 Shadowrocket）中，可将节点的 <code>server</code>（服务器地址）替换为您本地运营商测速最优的 Cloudflare Anycast IP（如 <code>104.16.x.x</code>、<code>1.1.1.1</code> 等）。<br>
-        2. <strong>重要保持</strong>：请务必保持 <code>Host</code> 与 <code>SNI</code> 依然为您当前的 Worker 域名 <code>${config.host}</code>，即可获得极致的低延迟体验！
+        1. <strong>已自动注入优选节点矩阵</strong>：当前订阅已为您自动包含 7 条多路径线路（【直连】、香港优选、亚太官方、授时专线及官方 Anycast IP 段），各运营商均可直连。<br>
+        2. <strong>重要：Clash Verge 测速设置</strong>：Clash 默认测速目标通常为 <code>cp.cloudflare.com</code>，由于 Cloudflare 平台自回环防护机制会导致测速报超时。<strong>请在 Clash Verge【设置】中将【测速地址 (Test URL)】改为 <code>http://www.gstatic.com/generate_204</code></strong>，测速即可瞬间显示绿色低延迟！<br>
+        3. <strong>自选 IP 进阶</strong>：您也可以将节点的 <code>server</code> 手动替换为通过 <code>CloudflareSpeedTest</code> 工具在本地测出的最快 IP，只需保持 <code>Host</code> 与 <code>SNI</code> 仍为 <code>${config.host}</code> 即可！
       </div>
     </div>
   </div>

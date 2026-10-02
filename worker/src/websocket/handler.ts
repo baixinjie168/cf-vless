@@ -12,6 +12,7 @@ export interface WebSocketEnv {
   VLESS_UUID?: string;
   ENVIRONMENT?: string;
   OUTBOUND_MOCK?: string;
+  PROXYIP?: string;
 }
 
 /**
@@ -116,7 +117,7 @@ export async function handleVlessWebSocket(
     connector ??
     (env?.OUTBOUND_MOCK === "true" || env?.ENVIRONMENT === "test"
       ? new MockConnector()
-      : new DirectTcpConnector());
+      : new DirectTcpConnector(env?.PROXYIP));
 
   let authenticated = false;
   let isConnecting = false;

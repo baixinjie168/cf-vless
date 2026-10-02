@@ -43,13 +43,20 @@ describe("Phase 2: Subscription & Web Dashboard", () => {
       expect(yaml).toContain("uuid: d34db33f-9999-4444-8888-123456789abc");
       expect(yaml).toContain("path: /vless");
       expect(yaml).toContain("proxy-groups:");
+      expect(yaml).toContain("AUTO-自动优选");
+      expect(yaml).toContain("FALLBACK-故障转移");
+      expect(yaml).toContain("http://www.gstatic.com/generate_204");
       expect(yaml).toContain("rules:");
     });
 
-    it("should generate Base64 subscription that decodes to vless://", () => {
+    it("should generate Base64 subscription containing the clean IP node matrix", () => {
       const b64 = generateBase64Subscription(sampleConfig);
       const decoded = atob(b64);
       expect(decoded).toContain("vless://d34db33f-9999-4444-8888-123456789abc@proxy.example.com:443");
+      expect(decoded).toContain("icook.hk");
+      expect(decoded).toContain("104.16.88.88");
+      const lines = decoded.trim().split("\n");
+      expect(lines.length).toBe(7);
     });
 
     it("should generate valid sing-box JSON configuration", () => {

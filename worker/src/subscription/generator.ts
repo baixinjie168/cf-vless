@@ -1,5 +1,48 @@
 import { VlessNodeConfig } from "./types";
 
+export interface CleanTarget {
+  name: string;
+  server: string;
+}
+
+/**
+ * Curated high-availability Cloudflare Anycast clean targets for domestic connectivity.
+ */
+export const DEFAULT_CLEAN_TARGETS: CleanTarget[] = [
+  { name: "香港优选-HK", server: "icook.hk" },
+  { name: "亚太官方-CF", server: "cf.090227.xyz" },
+  { name: "授时优选-TIME", server: "time.is" },
+  { name: "官方优选-IP1", server: "104.16.88.88" },
+  { name: "官方优选-IP2", server: "104.18.88.88" },
+  { name: "官方优选-IP3", server: "162.159.192.1" },
+];
+
+/**
+ * Expands a single base node config into a multi-path Clean IP Node Matrix.
+ */
+export function getAllNodeConfigs(
+  baseConfig: VlessNodeConfig,
+  cleanTargets: CleanTarget[] = DEFAULT_CLEAN_TARGETS
+): VlessNodeConfig[] {
+  const list: VlessNodeConfig[] = [
+    {
+      ...baseConfig,
+      name: `【直连】${baseConfig.name}`,
+    },
+  ];
+
+  for (const t of cleanTargets) {
+    list.push({
+      ...baseConfig,
+      name: `【优选】${t.name}`,
+      host: t.server, // Physical connect server target (Clean IP/domain)
+      sni: baseConfig.sni, // SNI strictly locked to Worker domain
+    });
+  }
+
+  return list;
+}
+
 /**
  * Generates standard vless:// URI compatible with modern proxy clients.
  */
@@ -8,16 +51,20 @@ export function generateVlessUri(config: VlessNodeConfig): string {
   const encName = encodeURIComponent(config.name);
   const security = config.tls ? "tls" : "none";
 
-  return `vless://${config.uuid}@${config.host}:${config.port}?encryption=none&security=${security}&sni=${config.sni}&fp=chrome&type=ws&host=${config.host}&path=${encPath}#${encName}`;
+  return `vless://${config.uuid}@${config.host}:${config.port}?encryption=none&security=${security}&sni=${config.sni}&fp=chrome&type=ws&host=${config.sni}&path=${encPath}#${encName}`;
 }
 
 /**
  * Generates Base64 subscription string containing one or more VLESS URIs.
  */
 export function generateBase64Subscription(
-  configs: VlessNodeConfig | VlessNodeConfig[]
+  configs: VlessNodeConfig | VlessNodeConfig[],
+  cleanTargets: CleanTarget[] = DEFAULT_CLEAN_TARGETS
 ): string {
-  const list = Array.isArray(configs) ? configs : [configs];
+  const list = Array.isArray(configs)
+    ? configs
+    : getAllNodeConfigs(configs, cleanTargets);
+
   const text = list.map((c) => generateVlessUri(c)).join("\n");
 
   const bytes = new TextEncoder().encode(text);
@@ -29,35 +76,20 @@ export function generateBase64Subscription(
 }
 
 /**
- * Generates complete Clash Verge / Clash Meta (Mihomo) compatible YAML configuration.
+ * Generates complete Clash Verge / Clash Meta (Mihomo) compatible YAML configuration
+ * with auto-injected Clean IP node matrix and automatic latency optimization group.
  */
 export function generateClashYaml(
   config: VlessNodeConfig,
-  cleanIps?: string[]
+  cleanTargets: CleanTarget[] = DEFAULT_CLEAN_TARGETS
 ): string {
-  const nodes: { name: string; server: string; port: number }[] = [
-    {
-      name: config.name,
-      server: config.host,
-      port: config.port,
-    },
-  ];
+  const allNodes = getAllNodeConfigs(config, cleanTargets);
 
-  if (cleanIps && cleanIps.length > 0) {
-    cleanIps.forEach((ip, idx) => {
-      nodes.push({
-        name: `${config.name}-优选IP-${idx + 1}`,
-        server: ip,
-        port: config.port,
-      });
-    });
-  }
-
-  const proxiesYaml = nodes
+  const proxiesYaml = allNodes
     .map(
       (n) => `  - name: "${n.name}"
     type: vless
-    server: ${n.server}
+    server: ${n.host}
     port: ${n.port}
     uuid: ${config.uuid}
     network: ws
@@ -68,11 +100,11 @@ export function generateClashYaml(
     ws-opts:
       path: ${config.path}
       headers:
-        Host: ${config.host}`
+        Host: ${config.sni}`
     )
     .join("\n\n");
 
-  const proxyNames = nodes.map((n) => `      - "${n.name}"`).join("\n");
+  const proxyNames = allNodes.map((n) => `      - "${n.name}"`).join("\n");
 
   return `port: 7890
 socks-port: 7891
@@ -88,15 +120,23 @@ proxy-groups:
   - name: "PROXIES"
     type: select
     proxies:
+      - "AUTO-自动优选"
+      - "FALLBACK-故障转移"
 ${proxyNames}
-      - "AUTO"
       - DIRECT
 
-  - name: "AUTO"
+  - name: "AUTO-自动优选"
     type: url-test
     url: "http://www.gstatic.com/generate_204"
     interval: 300
     tolerance: 50
+    proxies:
+${proxyNames}
+
+  - name: "FALLBACK-故障转移"
+    type: fallback
+    url: "http://www.gstatic.com/generate_204"
+    interval: 300
     proxies:
 ${proxyNames}
 
@@ -116,32 +156,30 @@ rules:
  * Generates sing-box JSON configuration format.
  */
 export function generateSingboxJson(config: VlessNodeConfig): string {
-  const obj = {
-    outbounds: [
-      {
-        type: "vless",
-        tag: config.name,
-        server: config.host,
-        server_port: config.port,
-        uuid: config.uuid,
-        transport: {
-          type: "ws",
-          path: config.path,
-          headers: {
-            Host: config.host,
-          },
-        },
-        tls: {
-          enabled: config.tls,
-          server_name: config.sni,
-          utls: {
-            enabled: true,
-            fingerprint: "chrome",
-          },
-        },
-      },
-    ],
-  };
+  const allNodes = getAllNodeConfigs(config);
 
-  return JSON.stringify(obj, null, 2);
+  const outbounds = allNodes.map((n) => ({
+    type: "vless",
+    tag: n.name,
+    server: n.host,
+    server_port: n.port,
+    uuid: config.uuid,
+    transport: {
+      type: "ws",
+      path: config.path,
+      headers: {
+        Host: config.sni,
+      },
+    },
+    tls: {
+      enabled: config.tls,
+      server_name: config.sni,
+      utls: {
+        enabled: true,
+        fingerprint: "chrome",
+      },
+    },
+  }));
+
+  return JSON.stringify({ outbounds }, null, 2);
 }

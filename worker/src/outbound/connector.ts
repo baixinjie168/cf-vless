@@ -13,12 +13,19 @@ export interface OutboundConnector {
 /**
  * Direct TCP Outbound Connector (Production).
  * Leverages Cloudflare Workers native TCP Sockets API (cloudflare:sockets connect()).
+ * Supports fallback to ProxyIP when Cloudflare anti-loopback or connection errors occur.
  */
 export class DirectTcpConnector implements OutboundConnector {
+  private proxyIp?: string;
+
+  constructor(proxyIp?: string) {
+    this.proxyIp = proxyIp || "proxyip.aliyun.fxxk.dedyn.io";
+  }
+
   async connect(address: string, port: number): Promise<OutboundConnection> {
     try {
+      // 1. Try direct connection first
       const socket = cfConnect({ hostname: address, port });
-      // Await socket.opened to detect connection errors early
       await socket.opened;
 
       return {
@@ -32,10 +39,37 @@ export class DirectTcpConnector implements OutboundConnector {
           }
         },
       };
-    } catch (err) {
+    } catch (directErr) {
+      // 2. If direct connection fails (e.g. Cloudflare anti-loopback on cp.cloudflare.com)
+      // and proxyIp is available, fallback to proxyIp
+      if (this.proxyIp && this.proxyIp !== address) {
+        try {
+          const fallbackSocket = cfConnect({ hostname: this.proxyIp, port });
+          await fallbackSocket.opened;
+
+          return {
+            readable: fallbackSocket.readable as ReadableStream<Uint8Array>,
+            writable: fallbackSocket.writable as WritableStream<Uint8Array>,
+            close: async () => {
+              try {
+                await fallbackSocket.close();
+              } catch {}
+            },
+          };
+        } catch (fallbackErr) {
+          throw new Error(
+            `Connection to ${address}:${port} failed (direct: ${
+              directErr instanceof Error ? directErr.message : String(directErr)
+            }, proxyIp ${this.proxyIp}: ${
+              fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr)
+            })`
+          );
+        }
+      }
+
       throw new Error(
         `Direct TCP connection to ${address}:${port} failed: ${
-          err instanceof Error ? err.message : String(err)
+          directErr instanceof Error ? directErr.message : String(directErr)
         }`
       );
     }
