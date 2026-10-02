@@ -20,7 +20,7 @@ describe("HTTP Diagnostic Routes (Step 2)", () => {
       expect(data).toEqual({
         name: "cloudflare-proxy-lab",
         status: "ok",
-        version: "0.1.0",
+        version: "0.2.0",
       });
     });
 
@@ -66,7 +66,7 @@ describe("HTTP Diagnostic Routes (Step 2)", () => {
       const data = await response.json() as Record<string, unknown>;
       expect(data.name).toBe("cloudflare-proxy-lab");
       expect(data.status).toBe("ok");
-      expect(data.version).toBe("0.1.0");
+      expect(data.version).toBe("0.2.0");
       expect(data.environment).toBe("staging");
     });
 

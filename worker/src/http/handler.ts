@@ -86,7 +86,7 @@ export async function handleHttp(request: Request, env: unknown): Promise<Respon
       JSON.stringify({
         name: "cloudflare-proxy-lab",
         status: "ok",
-        version: "0.1.0",
+        version: "0.2.0",
       }),
       {
         status: 200,
@@ -199,7 +199,7 @@ export async function handleHttp(request: Request, env: unknown): Promise<Respon
       JSON.stringify({
         name: "cloudflare-proxy-lab",
         status: "ok",
-        version: "0.1.0",
+        version: "0.2.0",
         environment: config.environment,
       }),
       {

@@ -16,6 +16,6 @@ describe("Worker Initialization Baseline", () => {
     const body = await response.json() as { name: string; status: string; version: string };
     expect(body.name).toBe("cloudflare-proxy-lab");
     expect(body.status).toBe("ok");
-    expect(body.version).toBe("0.1.0");
+    expect(body.version).toBe("0.2.0");
   });
 });
